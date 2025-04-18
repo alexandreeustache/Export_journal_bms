@@ -50,16 +50,24 @@
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #45a049;
+            background-color: rgb(209, 13, 13);
         }
         .form-container {
             text-align: center;
         }
+        /* Style pour l'image */
+        .logo-container {
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
+    <div class="logo-container">
+        <img src="/static/ETR_LOGO_RG-GRIS.png" alt="Logo" style="max-width: 100%; height: auto;">
+    </div>
+    
     <div class="container">
-        <img src="/static/ETR_LOGO_RG-GRIS.png" alt="Logo" style="display: block; margin: 0 auto; max-width: 100%; height: auto;">
         <form method="POST" action="/export" class="form-container">
             <label for="bms_name">Choisir un BMS :</label>
             <select name="bms_name" id="bms_name">
