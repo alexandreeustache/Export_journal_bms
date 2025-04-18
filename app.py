@@ -3,6 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import csv
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -25,7 +26,10 @@ def export():
         return f"BMS {bms_name} introuvable", 404
 
     data = doc.to_dict()
-    filename = f"{bms_name}_export.csv"
+    
+    now = datetime.now()
+    timestamp = now.strftime("%d-%m-%Y_%H-%M")
+    filename = f"{bms_name}_{timestamp}.csv"
     filepath = os.path.join("exports", filename)
 
     os.makedirs("exports", exist_ok=True)
