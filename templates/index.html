@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Exporter un BMS</title>
+</head>
+<body>
+    <h1>Exporter un journal de BMS</h1>
+    <form method="POST" action="/export">
+        <label for="bms_name">Choisir un BMS :</label>
+        <select name="bms_name" id="bms_name">
+            {% for bms in bms_list %}
+            <option value="{{ bms }}">{{ bms }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Exporter</button>
+    </form>
+</body>
+</html>

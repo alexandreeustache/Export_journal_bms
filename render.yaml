@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: bms-export-web
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    envVars:
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: etricks-bms-firebase-adminsdk-fbsvc-e0019cb086.json
