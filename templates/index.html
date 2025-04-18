@@ -39,7 +39,7 @@
             border: 1px solid #ddd;
         }
         button {
-            background-color: #4CAF50;
+            background-color: rgb(209, 13, 13);
             color: white;
             font-size: 16px;
             padding: 10px 20px;
@@ -58,8 +58,8 @@
     </style>
 </head>
 <body>
-    <h1>Exporter un journal de BMS</h1>
     <div class="container">
+        <img src="/static/ETR_LOGO_RG-GRIS.png" alt="Logo" style="display: block; margin: 0 auto; max-width: 100%; height: auto;">
         <form method="POST" action="/export" class="form-container">
             <label for="bms_name">Choisir un BMS :</label>
             <select name="bms_name" id="bms_name">
@@ -67,7 +67,7 @@
                 <option value="{{ bms }}">{{ bms }}</option>
                 {% endfor %}
             </select>
-            <button type="submit">Exporter</button>
+            <button type="submit">Exporter le journal</button>
         </form>
     </div>
 </body>
