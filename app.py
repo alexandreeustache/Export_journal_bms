@@ -13,6 +13,46 @@ cred = credentials.Certificate("etricks-bms-firebase-adminsdk-fbsvc-e0019cb086.j
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
+def extraire_date_bms(content):
+    try:
+        # Supposons que la date est à la fin, comme : "2025/04/30"
+        date_str = content.strip().split()[-3]  # Exemple : '2025/04/30'
+        return datetime.strptime(date_str, "%Y/%m/%d")
+    except Exception:
+        return None
+    
+
+def get_bms_data(sort_by=None, search_term=None):
+    bms_docs = db.collection('bms').stream()
+    bms_list = []
+
+    for doc in bms_docs:
+        name = doc.id
+        content = doc.to_dict().get("data", "")
+        date_obj = extraire_date_bms(content)
+        last_connection_str = date_obj.strftime("%d/%m/%Y") if date_obj else "Inconnue"
+
+        if search_term and search_term.lower() not in name.lower():
+            continue
+
+        bms_list.append({
+            "name": name,
+            "content": content,
+            "last_connection": date_obj,
+            "last_connection_str": last_connection_str
+        })
+
+    # Appliquer le tri
+    if sort_by == "recent":
+        bms_list.sort(key=lambda b: b["last_connection"] or datetime.min, reverse=True)
+    elif sort_by == "name_asc":
+        bms_list.sort(key=lambda b: b["name"])
+    elif sort_by == "name_desc":
+        bms_list.sort(key=lambda b: b["name"], reverse=True)
+
+    return bms_list
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -30,70 +70,15 @@ def index():
     if not session.get("authenticated"):
         return redirect(url_for("login"))
 
-    # Récupérer les paramètres de filtrage
-    sort_by = request.args.get("sort_by", "name_asc")  # Default: tri par nom croissant
+    sort_by = request.args.get("sort_by", "name_asc")
     search_term = request.args.get("search", "").lower()
-    
-    # Récupérer tous les documents BMS
-    docs = db.collection("Journal-bms").stream()
-    
-    # Créer une liste de BMS avec leurs métadonnées et contenu
-    bms_data = []
-    for doc in docs:
-        bms_name = doc.id
-        bms_info = doc.to_dict()
-        
-        # Pas de filtrage côté serveur pour permettre la recherche en temps réel côté client
-        # La recherche se fait maintenant côté client en JavaScript
-            
-        # Extraire la date la plus récente depuis le contenu du BMS
-        latest_timestamp = None
-        if bms_info:
-            try:
-                # Convertir les clés (timestamps) en objets datetime pour le tri
-                dates = [datetime.strptime(ts, "%Y-%m-%d %H:%M:%S") 
-                         for ts in bms_info.keys() if ts]
-                if dates:
-                    latest_timestamp = max(dates)
-                    
-                    # Examiner le contenu pour trouver la date la plus récente
-                    # Nous supposons ici que le contenu est stocké sous forme de valeurs
-                    # dans le dictionnaire bms_info
-            except (ValueError, TypeError):
-                # En cas d'erreur de format de date, on continue simplement
-                pass
-        
-        bms_data.append({
-            "name": bms_name,
-            "last_connection": latest_timestamp
-        })
-    
-    # Trier les BMS selon le critère sélectionné
-    if sort_by == "name_asc":
-        # Tri par nom croissant (A-Z)
-        bms_data.sort(key=lambda x: x["name"])
-    elif sort_by == "name_desc":
-        # Tri par nom décroissant (Z-A)
-        bms_data.sort(key=lambda x: x["name"], reverse=True)
-    elif sort_by == "recent":
-        # Trier par date la plus récente d'abord, puis par nom pour les BMS sans date
-        bms_data.sort(key=lambda x: (x["last_connection"] is None, 
-                                    "" if x["last_connection"] is None else -x["last_connection"].timestamp(), 
-                                    x["name"]))
-    else:  # Par défaut, tri par nom croissant
-        bms_data.sort(key=lambda x: x["name"])
-    
-    # Formater les dates pour l'affichage
-    for bms in bms_data:
-        if bms["last_connection"]:
-            bms["last_connection_str"] = bms["last_connection"].strftime("%d-%m-%Y %H:%M")
-        else:
-            bms["last_connection_str"] = "Inconnue"
-    
+
+    bms_data = get_bms_data(sort_by=sort_by, search_term=search_term)
+
     return render_template("index.html", 
-                         bms_data=bms_data, 
-                         sort_by=sort_by,
-                         search_term=search_term)
+                           bms_data=bms_data, 
+                           sort_by=sort_by,
+                           search_term=search_term)
 
 
 @app.route("/export", methods=["POST"])
