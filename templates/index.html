@@ -197,7 +197,7 @@
                 <!-- Recherche avec icône -->
                 <div class="search-container">
                     <input type="text" name="search" id="search" class="search-input" placeholder="Rechercher un BMS..." value="{{ search_term }}" oninput="searchInRealTime()">
-                    <i class="fas fa-search search-icon"></i>
+                    <i id="search-icon" class="fas fa-search search-icon" onclick="clearSearchField()" style="cursor: pointer;"></i>
                 </div>
                 
                 <!-- Menu déroulant filtre avec icône -->
@@ -256,7 +256,7 @@
             event.preventDefault();
             document.getElementById('filterMenu').classList.toggle('active');
         }
-        
+    
         function applyFilter(filter, event) {
             event.preventDefault();
             document.getElementById('sort_by').value = filter;
@@ -264,80 +264,69 @@
             document.querySelector('form').method = 'GET';
             document.querySelector('form').submit();
         }
-        
+    
         function searchInRealTime() {
-            const searchInput = document.getElementById('search').value.toLowerCase();
+            const searchInput = document.getElementById('search');
+            const icon = document.getElementById('search-icon');
+            const value = searchInput.value.toLowerCase();
             const optionsList = document.getElementById('bms_name');
-            const options = optionsList.options;
+            const options = optionsList?.options || [];
             let visibleCount = 0;
-            
-            // Si la liste des BMS n'existe pas encore, on ne fait rien
-            if (!optionsList) return;
-            
-            // Parcourir toutes les options et cacher celles qui ne correspondent pas
+    
+            // Changement d'icône
+            if (value) {
+                icon.classList.remove('fa-search');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-search');
+            }
+    
+            // Filtrage
             for (let i = 0; i < options.length; i++) {
                 const bmsName = options[i].text.toLowerCase();
-                if (bmsName.includes(searchInput)) {
-                    options[i].style.display = '';
-                    visibleCount++;
-                } else {
-                    options[i].style.display = 'none';
-                }
+                options[i].style.display = bmsName.includes(value) ? '' : 'none';
+                if (bmsName.includes(value)) visibleCount++;
             }
-            
-            // Mettre à jour le message de résultat
+    
             const searchResult = document.querySelector('.search-result');
             if (searchResult) {
-                if (searchInput) {
-                    searchResult.textContent = `${visibleCount} résultat(s) trouvé(s) pour "${searchInput}"`;
+                if (value) {
+                    searchResult.textContent = `${visibleCount} résultat(s) trouvé(s) pour "${value}"`;
                     searchResult.style.display = 'block';
                 } else {
                     searchResult.style.display = 'none';
                 }
             }
         }
-        
-        // Fermer le menu si on clique ailleurs
-        window.addEventListener('click', function(e) {
-            const filterMenu = document.getElementById('filterMenu');
-            const filterBtn = document.querySelector('.filter-btn');
-            
-            if (filterMenu.classList.contains('active') && 
-                !filterMenu.contains(e.target) && 
-                !filterBtn.contains(e.target)) {
-                filterMenu.classList.remove('active');
+    
+        function clearSearchField() {
+            const searchInput = document.getElementById('search');
+            const icon = document.getElementById('search-icon');
+    
+            if (searchInput.value !== "") {
+                searchInput.value = "";
+                searchInput.focus();
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-search');
+                searchInRealTime(); // Met à jour la liste
             }
-        });
-        
-        // Initialiser la recherche au chargement de la page
-        window.addEventListener('DOMContentLoaded', function() {
-            // Si le champ de recherche contient déjà une valeur, filtrer les résultats
+        }
+    
+        window.addEventListener('DOMContentLoaded', function () {
             if (document.getElementById('search').value) {
                 searchInRealTime();
             }
-            
-            // Mise à jour du libellé du bouton de filtre en fonction du tri actuel
+    
             const sortBy = document.getElementById('sort_by').value;
             const filterBtnText = document.querySelector('.filter-btn span');
-            
-            if (sortBy === 'name_asc') {
-                filterBtnText.innerHTML = 'Nom (A-Z)';
-                filterBtnText.style.color = '#333';
-                filterBtnText.style.fontWeight = '500';
-            } else if (sortBy === 'name_desc') {
-                filterBtnText.innerHTML = 'Nom (Z-A)';
-                filterBtnText.style.color = '#333';
-                filterBtnText.style.fontWeight = '500';
-            } else if (sortBy === 'recent') {
-                filterBtnText.innerHTML = 'Plus récent';
-                filterBtnText.style.color = '#333';
-                filterBtnText.style.fontWeight = '500';
-            } else {
-                filterBtnText.innerHTML = 'Filtres';
-                filterBtnText.style.color = '#333';
-                filterBtnText.style.fontWeight = '500';
-            }
+    
+            if (sortBy === 'name_asc') filterBtnText.innerHTML = 'Nom (A-Z)';
+            else if (sortBy === 'name_desc') filterBtnText.innerHTML = 'Nom (Z-A)';
+            else if (sortBy === 'recent') filterBtnText.innerHTML = 'Plus récent';
+            else filterBtnText.innerHTML = 'Filtres';
         });
     </script>
+ 
 </body>
 </html>
