@@ -189,17 +189,16 @@
     </div>
     
     <div class="container">
-        <form method="POST" action="/export" class="form-container">
+        <form method="POST" action="/export" class="form-container" id="bmsForm" onsubmit="handleFormSubmit(event)">
             <label for="bms_name">Sélectionner un BMS :</label>
             
             <!-- Container pour mettre recherche et filtre sur la même ligne -->
             <div class="search-filter-container">
                 <!-- Recherche avec icône -->
-                <form method="GET" action="/" class="search-container" onsubmit="return validateSearchBeforeSubmit()">
-                    <input type="text" name="search" id="search" class="search-input" placeholder="Rechercher un BMS..." value="{{ search_term }}" oninput="searchInRealTime()">
+                <div class="search-container">
+                    <input type="text" name="search" id="search" class="search-input" placeholder="Rechercher un BMS..." value="{{ search_term }}" oninput="searchInRealTime()" onkeydown="handleSearchKeyPress(event)">
                     <i id="search-icon" class="fas fa-search search-icon" onclick="clearSearchField()" style="cursor: pointer;"></i>
-                    <input type="hidden" name="sort_by" value="{{ sort_by }}">
-                </form>
+                </div>       
                 
                 <!-- Menu déroulant filtre avec icône -->
                 <div class="filter-dropdown">
@@ -313,6 +312,39 @@
                 searchInRealTime(); // Met à jour la liste
             }
         }
+
+        function handleSearchKeyPress(event) {
+            // Si la touche appuyée est Entrée
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Empêche le formulaire d'être soumis
+                
+                // Au lieu de soumettre, on effectue la recherche en direct
+                searchInRealTime();
+                
+                // Optionnel : soumet le formulaire avec la méthode GET et l'action "/"
+                // pour filtrer les résultats côté serveur
+                document.querySelector('form').action = '/';
+                document.querySelector('form').method = 'GET';
+                document.querySelector('form').submit();
+            }
+        }
+
+        function handleFormSubmit(event) {
+            // Cette fonction gère la soumission du formulaire
+            // Si c'est pour l'exportation (bouton Export), on ne change rien
+            // Si c'est depuis la recherche, on a déjà changé l'action et la méthode dans handleSearchKeyPress
+            
+            // On pourrait ajouter des validations supplémentaires ici si nécessaire
+            const bmsSelect = document.getElementById('bms_name');
+            
+            // Si on soumet pour exporter et qu'aucun BMS n'est sélectionné, on empêche la soumission
+            if (event.submitter && event.submitter.textContent === "Exporter le journal") {
+                if (!bmsSelect.value) {
+                    event.preventDefault();
+                    alert("Veuillez sélectionner un BMS avant d'exporter.");
+                }
+            }
+        }
     
         window.addEventListener('DOMContentLoaded', function () {
             if (document.getElementById('search').value) {
@@ -326,6 +358,18 @@
             else if (sortBy === 'name_desc') filterBtnText.innerHTML = 'Nom (Z-A)';
             else if (sortBy === 'recent') filterBtnText.innerHTML = 'Plus récent';
             else filterBtnText.innerHTML = 'Filtres';
+            
+            // Ferme le menu de filtre si on clique ailleurs
+            document.addEventListener('click', function(event) {
+                const filterMenu = document.getElementById('filterMenu');
+                const filterBtn = document.querySelector('.filter-btn');
+                
+                if (filterMenu.classList.contains('active') && 
+                    !filterMenu.contains(event.target) && 
+                    !filterBtn.contains(event.target)) {
+                    filterMenu.classList.remove('active');
+                }
+            });
         });
     </script>
  
