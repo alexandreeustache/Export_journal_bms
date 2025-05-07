@@ -13,45 +13,19 @@ cred = credentials.Certificate("etricks-bms-firebase-adminsdk-fbsvc-e0019cb086.j
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
-def extraire_date_bms(content):
-    try:
-        # Supposons que la date est à la fin, comme : "2025/04/30"
-        date_str = content.strip().split()[-3]  # Exemple : '2025/04/30'
-        return datetime.strptime(date_str, "%Y/%m/%d")
-    except Exception:
-        return None
-
-
-def get_bms_data(sort_by=None, search_term=None):
-    bms_docs = db.collection('bms').stream()
-    bms_list = []
-
-    for doc in bms_docs:
-        name = doc.id
-        content = doc.to_dict().get("data", "")
-        date_obj = extraire_date_bms(content)
-        last_connection_str = date_obj.strftime("%d/%m/%Y") if date_obj else "Inconnue"
-
-        if search_term and search_term.lower() not in name.lower():
+def extraire_date_bms(bms_info):
+    """
+    Extrait la date la plus récente parmi les clés du dictionnaire (format: '30-04-2025_12:13').
+    """
+    latest_date = None
+    for key in bms_info.keys():
+        try:
+            date_obj = datetime.strptime(key, "%d-%m-%Y_%H:%M")
+            if not latest_date or date_obj > latest_date:
+                latest_date = date_obj
+        except ValueError:
             continue
-
-        bms_list.append({
-            "name": name,
-            "content": content,
-            "last_connection": date_obj,
-            "last_connection_str": last_connection_str
-        })
-
-    # Appliquer le tri
-    if sort_by == "recent":
-        bms_list.sort(key=lambda b: b["last_connection"] or datetime.min, reverse=True)
-    elif sort_by == "name_asc":
-        bms_list.sort(key=lambda b: b["name"])
-    elif sort_by == "name_desc":
-        bms_list.sort(key=lambda b: b["name"], reverse=True)
-
-    return bms_list
-
+    return latest_date
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -80,7 +54,6 @@ def index():
         bms_name = doc.id
         bms_info = doc.to_dict()
 
-        # Filtrage côté serveur (optionnel)
         if search_term and search_term not in bms_name.lower():
             continue
 
@@ -91,7 +64,7 @@ def index():
             "last_connection": latest_timestamp
         })
 
-    # Tri
+    # Tri selon le filtre
     if sort_by == "name_asc":
         bms_data.sort(key=lambda x: x["name"])
     elif sort_by == "name_desc":
@@ -103,7 +76,7 @@ def index():
     else:
         bms_data.sort(key=lambda x: x["name"])
 
-    # Format d'affichage
+    # Format lisible
     for bms in bms_data:
         if bms["last_connection"]:
             bms["last_connection_str"] = bms["last_connection"].strftime("%d-%m-%Y %H:%M")
