@@ -195,10 +195,11 @@
             <!-- Container pour mettre recherche et filtre sur la même ligne -->
             <div class="search-filter-container">
                 <!-- Recherche avec icône -->
-                <div class="search-container">
+                <form method="GET" action="/" class="search-container" onsubmit="return validateSearchBeforeSubmit()">
                     <input type="text" name="search" id="search" class="search-input" placeholder="Rechercher un BMS..." value="{{ search_term }}" oninput="searchInRealTime()">
                     <i id="search-icon" class="fas fa-search search-icon" onclick="clearSearchField()" style="cursor: pointer;"></i>
-                </div>
+                    <input type="hidden" name="sort_by" value="{{ sort_by }}">
+                </form>
                 
                 <!-- Menu déroulant filtre avec icône -->
                 <div class="filter-dropdown">
