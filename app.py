@@ -30,9 +30,59 @@ def index():
     if not session.get("authenticated"):
         return redirect(url_for("login"))
 
+    # Récupérer les paramètres de filtrage
+    sort_by = request.args.get("sort_by", "name")  # Default: tri par nom
+    search_term = request.args.get("search", "").lower()
+    
+    # Récupérer tous les documents BMS
     docs = db.collection("Journal-bms").stream()
-    bms_list = [doc.id for doc in docs]
-    return render_template("index.html", bms_list=bms_list)
+    
+    # Créer une liste de BMS avec leurs métadonnées
+    bms_data = []
+    for doc in docs:
+        bms_name = doc.id
+        bms_info = doc.to_dict()
+        
+        # Trouvez la date la plus récente pour ce BMS
+        latest_timestamp = None
+        if bms_info:
+            try:
+                # Convertir les clés (timestamps) en objets datetime pour le tri
+                dates = [datetime.strptime(ts, "%Y-%m-%d %H:%M:%S") 
+                         for ts in bms_info.keys() if ts]
+                if dates:
+                    latest_timestamp = max(dates)
+            except (ValueError, TypeError):
+                # En cas d'erreur de format de date, on continue simplement
+                pass
+        
+        # Ajouter aux données seulement si correspond au terme de recherche
+        if search_term in bms_name.lower():
+            bms_data.append({
+                "name": bms_name,
+                "last_connection": latest_timestamp
+            })
+    
+    # Trier les BMS selon le critère sélectionné
+    if sort_by == "recent":
+        # Trier par date la plus récente d'abord, puis par nom pour les BMS sans date
+        bms_data.sort(key=lambda x: (x["last_connection"] is None, 
+                                    "" if x["last_connection"] is None else -x["last_connection"].timestamp(), 
+                                    x["name"]))
+    else:  # sort_by == "name"
+        bms_data.sort(key=lambda x: x["name"])
+    
+    # Formater les dates pour l'affichage
+    for bms in bms_data:
+        if bms["last_connection"]:
+            bms["last_connection_str"] = bms["last_connection"].strftime("%d-%m-%Y %H:%M")
+        else:
+            bms["last_connection_str"] = "Inconnue"
+    
+    return render_template("index.html", 
+                         bms_data=bms_data, 
+                         sort_by=sort_by,
+                         search_term=search_term)
 
 
 @app.route("/export", methods=["POST"])
@@ -65,4 +115,3 @@ def export():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=80)
-

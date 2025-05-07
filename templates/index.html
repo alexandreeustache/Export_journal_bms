@@ -24,6 +24,7 @@
             background-color: white;
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
         label {
             font-size: 18px;
@@ -39,6 +40,15 @@
             border-radius: 5px;
             border: 1px solid #ddd;
         }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
+        }
         button {
             background-color: rgb(209, 13, 13);
             color: white;
@@ -51,7 +61,7 @@
             transition: background-color 0.3s;
         }
         button:hover {
-            background-color: rgb(209, 13, 13);
+            background-color: rgb(169, 13, 13);
         }
         .form-container {
             text-align: center;
@@ -61,6 +71,47 @@
             margin-top: 70px;
             margin-bottom: 80px;
         }
+        .filter-options {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            width: 48%;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+        .action-buttons button {
+            width: 48%;
+        }
+        .logout-btn {
+            background-color: #777;
+            margin-left: 10px;
+        }
+        .logout-btn:hover {
+            background-color: #555;
+        }
+        .search-result {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .last-connection {
+            font-size: 14px;
+            color: #777;
+            margin-top: 5px;
+            text-align: left;
+        }
+        .bms-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
@@ -69,15 +120,60 @@
     </div>
     
     <div class="container">
-        <form method="POST" action="/export" class="form-container">
-            <label for="bms_name">Choisir un BMS :</label>
-            <select name="bms_name" id="bms_name">
-                {% for bms in bms_list %}
-                <option value="{{ bms }}">{{ bms }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Exporter le journal</button>
+        <!-- Formulaire de filtrage -->
+        <form method="GET" action="/" class="form-container">
+            <label for="search">Rechercher un BMS :</label>
+            <input type="text" name="search" id="search" placeholder="Entrez le nom du BMS..." value="{{ search_term }}">
+            
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label for="sort_by">Trier par :</label>
+                    <select name="sort_by" id="sort_by">
+                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Nom</option>
+                        <option value="recent" {% if sort_by == 'recent' %}selected{% endif %}>Plus récent</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit">Appliquer les filtres</button>
         </form>
+    </div>
+    
+    <div class="container">
+        {% if bms_data %}
+            {% if search_term %}
+                <div class="search-result">
+                    {{ bms_data|length }} résultat(s) trouvé(s) pour "{{ search_term }}"
+                </div>
+            {% endif %}
+            
+            <form method="POST" action="/export" class="form-container">
+                <label for="bms_name">Sélectionner un BMS :</label>
+                <select name="bms_name" id="bms_name" size="{% if bms_data|length > 1 %}5{% else %}2{% endif %}">
+                    {% for bms in bms_data %}
+                    <option value="{{ bms.name }}">
+                        {{ bms.name }}
+                        {% if bms.last_connection_str != "Inconnue" %}
+                        ({{ bms.last_connection_str }})
+                        {% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                
+                <div class="action-buttons">
+                    <button type="submit">Exporter le journal</button>
+                    <a href="/logout"><button type="button" class="logout-btn">Déconnexion</button></a>
+                </div>
+            </form>
+        {% else %}
+            <div class="search-result">
+                Aucun BMS trouvé.
+            </div>
+            <div class="action-buttons">
+                <a href="/"><button type="button">Retour</button></a>
+                <a href="/logout"><button type="button" class="logout-btn">Déconnexion</button></a>
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>
