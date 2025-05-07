@@ -61,6 +61,9 @@
             width: 100%;
             transition: background-color 0.3s;
         }
+        button:hover {
+            background-color: rgb(169, 13, 13);
+        }
         .form-container {
             text-align: center;
         }
@@ -74,13 +77,13 @@
             justify-content: space-between;
             align-items: stretch; /* Permet aux éléments de s'étirer à la même hauteur */
             margin-bottom: 20px;
-            gap: 10px;
+            gap: 10px; /* Augmenté de 10px à 15px pour plus d'espace entre les éléments */
             height: 40px; /* Hauteur fixe pour le conteneur */
         }
 
         .search-container {
             position: relative;
-            flex: 1;
+            flex: 2; /* Réduit à 2 pour donner plus d'espace au filtre */
             height: 100%; /* Prend toute la hauteur du conteneur parent */
         }
 
@@ -107,8 +110,8 @@
         .filter-dropdown {
             position: relative;
             width: auto;
-            min-width: 110px;
-            height: 100%; /* Prend toute la hauteur du conteneur parent */
+            min-width: 160px; 
+            height: 100%;
         }
 
         .filter-btn {
@@ -116,7 +119,7 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            height: 80%; /* Prend toute la hauteur du conteneur parent */
+            height: 80%; 
             padding: 0 10px;
             font-size: 16px;
             border-radius: 5px;
@@ -125,8 +128,8 @@
             cursor: pointer;
             white-space: nowrap;
             box-sizing: border-box;
-            margin: 0; /* Supprime les marges qui pourraient causer des problèmes */
-            color: #333; /* Assure une couleur de texte visible */
+            margin: 0; 
+            color: #333; 
         }
         .filter-menu {
             display: none;
@@ -146,7 +149,7 @@
         .filter-option {
             padding: 10px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
         }
         .filter-option:hover {
             background-color: #f4f4f4;
