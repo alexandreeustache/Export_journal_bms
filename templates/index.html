@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>ETRICKS | Export Journal</title>
     <link rel="icon" href="/static/E_LOGO_RG.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -71,27 +72,63 @@
             margin-top: 70px;
             margin-bottom: 80px;
         }
-        .filter-options {
-            display: flex;
-            justify-content: space-between;
+        .search-container {
+            position: relative;
             margin-bottom: 20px;
         }
-        .filter-group {
-            width: 48%;
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            padding-right: 40px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            box-sizing: border-box;
         }
-        .action-buttons {
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        .filter-dropdown {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .filter-btn {
             display: flex;
+            align-items: center;
             justify-content: space-between;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: white;
+            cursor: pointer;
         }
-        .action-buttons button {
-            width: 48%;
+        .filter-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        .logout-btn {
-            background-color: #777;
-            margin-left: 10px;
+        .filter-menu.active {
+            display: block;
         }
-        .logout-btn:hover {
-            background-color: #555;
+        .filter-option {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .filter-option:hover {
+            background-color: #f4f4f4;
         }
         .search-result {
             font-size: 16px;
@@ -112,6 +149,10 @@
             padding: 8px;
             border-bottom: 1px solid #eee;
         }
+        .current-filter {
+            margin-left: 5px;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -120,35 +161,36 @@
     </div>
     
     <div class="container">
-        <!-- Formulaire de filtrage -->
-        <form method="GET" action="/" class="form-container">
-            <label for="search">Rechercher un BMS :</label>
-            <input type="text" name="search" id="search" placeholder="Entrez le nom du BMS..." value="{{ search_term }}">
+        <form method="POST" action="/export" class="form-container">
+            <label for="bms_name">Sélectionner un BMS :</label>
             
-            <div class="filter-options">
-                <div class="filter-group">
-                    <label for="sort_by">Trier par :</label>
-                    <select name="sort_by" id="sort_by">
-                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Nom</option>
-                        <option value="recent" {% if sort_by == 'recent' %}selected{% endif %}>Plus récent</option>
-                    </select>
+            <!-- Recherche avec icône -->
+            <div class="search-container">
+                <input type="text" name="search" id="search" class="search-input" placeholder="Rechercher un BMS..." value="{{ search_term }}" onchange="this.form.action='/';" onkeyup="if(event.key==='Enter')this.form.submit();">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <!-- Menu déroulant filtre avec icône -->
+            <div class="filter-dropdown">
+                <button type="button" class="filter-btn" onclick="toggleFilterMenu(event)">
+                    <span>Trier par: <span class="current-filter">{{ 'Nom' if sort_by == 'name' else 'Plus récent' }}</span></span>
+                    <i class="fas fa-filter"></i>
+                </button>
+                <div class="filter-menu" id="filterMenu">
+                    <div class="filter-option" onclick="applyFilter('name', event)">Nom</div>
+                    <div class="filter-option" onclick="applyFilter('recent', event)">Plus récent</div>
                 </div>
             </div>
             
-            <button type="submit">Appliquer les filtres</button>
-        </form>
-    </div>
-    
-    <div class="container">
-        {% if bms_data %}
-            {% if search_term %}
-                <div class="search-result">
-                    {{ bms_data|length }} résultat(s) trouvé(s) pour "{{ search_term }}"
-                </div>
-            {% endif %}
+            <input type="hidden" name="sort_by" id="sort_by" value="{{ sort_by }}">
             
-            <form method="POST" action="/export" class="form-container">
-                <label for="bms_name">Sélectionner un BMS :</label>
+            {% if bms_data %}
+                {% if search_term %}
+                    <div class="search-result">
+                        {{ bms_data|length }} résultat(s) trouvé(s) pour "{{ search_term }}"
+                    </div>
+                {% endif %}
+                
                 <select name="bms_name" id="bms_name" size="{% if bms_data|length > 1 %}5{% else %}2{% endif %}">
                     {% for bms in bms_data %}
                     <option value="{{ bms.name }}">
@@ -160,20 +202,41 @@
                     {% endfor %}
                 </select>
                 
-                <div class="action-buttons">
-                    <button type="submit">Exporter le journal</button>
-                    <a href="/logout"><button type="button" class="logout-btn">Déconnexion</button></a>
+                <button type="submit">Exporter le journal</button>
+            {% else %}
+                <div class="search-result">
+                    Aucun BMS trouvé.
                 </div>
-            </form>
-        {% else %}
-            <div class="search-result">
-                Aucun BMS trouvé.
-            </div>
-            <div class="action-buttons">
                 <a href="/"><button type="button">Retour</button></a>
-                <a href="/logout"><button type="button" class="logout-btn">Déconnexion</button></a>
-            </div>
-        {% endif %}
+            {% endif %}
+        </form>
     </div>
+
+    <script>
+        function toggleFilterMenu(event) {
+            event.preventDefault();
+            document.getElementById('filterMenu').classList.toggle('active');
+        }
+        
+        function applyFilter(filter, event) {
+            event.preventDefault();
+            document.getElementById('sort_by').value = filter;
+            document.querySelector('form').action = '/';
+            document.querySelector('form').method = 'GET';
+            document.querySelector('form').submit();
+        }
+        
+        // Fermer le menu si on clique ailleurs
+        window.addEventListener('click', function(e) {
+            const filterMenu = document.getElementById('filterMenu');
+            const filterBtn = document.querySelector('.filter-btn');
+            
+            if (filterMenu.classList.contains('active') && 
+                !filterMenu.contains(e.target) && 
+                !filterBtn.contains(e.target)) {
+                filterMenu.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>

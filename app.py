@@ -37,13 +37,17 @@ def index():
     # Récupérer tous les documents BMS
     docs = db.collection("Journal-bms").stream()
     
-    # Créer une liste de BMS avec leurs métadonnées
+    # Créer une liste de BMS avec leurs métadonnées et contenu
     bms_data = []
     for doc in docs:
         bms_name = doc.id
         bms_info = doc.to_dict()
         
-        # Trouvez la date la plus récente pour ce BMS
+        # Filtrer par nom si une recherche est effectuée
+        if search_term and search_term not in bms_name.lower():
+            continue
+            
+        # Extraire la date la plus récente depuis le contenu du BMS
         latest_timestamp = None
         if bms_info:
             try:
@@ -52,16 +56,18 @@ def index():
                          for ts in bms_info.keys() if ts]
                 if dates:
                     latest_timestamp = max(dates)
+                    
+                    # Examiner le contenu pour trouver la date la plus récente
+                    # Nous supposons ici que le contenu est stocké sous forme de valeurs
+                    # dans le dictionnaire bms_info
             except (ValueError, TypeError):
                 # En cas d'erreur de format de date, on continue simplement
                 pass
         
-        # Ajouter aux données seulement si correspond au terme de recherche
-        if search_term in bms_name.lower():
-            bms_data.append({
-                "name": bms_name,
-                "last_connection": latest_timestamp
-            })
+        bms_data.append({
+            "name": bms_name,
+            "last_connection": latest_timestamp
+        })
     
     # Trier les BMS selon le critère sélectionné
     if sort_by == "recent":
