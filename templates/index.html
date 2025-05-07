@@ -72,9 +72,16 @@
             margin-top: 70px;
             margin-bottom: 80px;
         }
+        .search-filter-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
         .search-container {
             position: relative;
-            margin-bottom: 20px;
+            flex: 1;
         }
         .search-input {
             width: 100%;
@@ -94,7 +101,8 @@
         }
         .filter-dropdown {
             position: relative;
-            margin-bottom: 20px;
+            width: auto;
+            min-width: 140px;
         }
         .filter-btn {
             display: flex;
@@ -107,6 +115,7 @@
             border: 1px solid #ddd;
             background-color: white;
             cursor: pointer;
+            white-space: nowrap;
         }
         .filter-menu {
             display: none;
@@ -164,21 +173,24 @@
         <form method="POST" action="/export" class="form-container">
             <label for="bms_name">Sélectionner un BMS :</label>
             
-            <!-- Recherche avec icône -->
-            <div class="search-container">
-                <input type="text" name="search" id="search" class="search-input" placeholder="Rechercher un BMS..." value="{{ search_term }}" onchange="this.form.action='/';" onkeyup="if(event.key==='Enter')this.form.submit();">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-            
-            <!-- Menu déroulant filtre avec icône -->
-            <div class="filter-dropdown">
-                <button type="button" class="filter-btn" onclick="toggleFilterMenu(event)">
-                    <span>Trier par: <span class="current-filter">{{ 'Nom' if sort_by == 'name' else 'Plus récent' }}</span></span>
-                    <i class="fas fa-filter"></i>
-                </button>
-                <div class="filter-menu" id="filterMenu">
-                    <div class="filter-option" onclick="applyFilter('name', event)">Nom</div>
-                    <div class="filter-option" onclick="applyFilter('recent', event)">Plus récent</div>
+            <!-- Container pour mettre recherche et filtre sur la même ligne -->
+            <div class="search-filter-container">
+                <!-- Recherche avec icône -->
+                <div class="search-container">
+                    <input type="text" name="search" id="search" class="search-input" placeholder="Rechercher un BMS..." value="{{ search_term }}" oninput="searchInRealTime()">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                
+                <!-- Menu déroulant filtre avec icône -->
+                <div class="filter-dropdown">
+                    <button type="button" class="filter-btn" onclick="toggleFilterMenu(event)">
+                        <span>Trier: <span class="current-filter">{{ 'Nom' if sort_by == 'name' else 'Récent' }}</span></span>
+                        <i class="fas fa-filter"></i>
+                    </button>
+                    <div class="filter-menu" id="filterMenu">
+                        <div class="filter-option" onclick="applyFilter('name', event)">Nom</div>
+                        <div class="filter-option" onclick="applyFilter('recent', event)">Plus récent</div>
+                    </div>
                 </div>
             </div>
             
@@ -226,6 +238,38 @@
             document.querySelector('form').submit();
         }
         
+        function searchInRealTime() {
+            const searchInput = document.getElementById('search').value.toLowerCase();
+            const optionsList = document.getElementById('bms_name');
+            const options = optionsList.options;
+            let visibleCount = 0;
+            
+            // Si la liste des BMS n'existe pas encore, on ne fait rien
+            if (!optionsList) return;
+            
+            // Parcourir toutes les options et cacher celles qui ne correspondent pas
+            for (let i = 0; i < options.length; i++) {
+                const bmsName = options[i].text.toLowerCase();
+                if (bmsName.includes(searchInput)) {
+                    options[i].style.display = '';
+                    visibleCount++;
+                } else {
+                    options[i].style.display = 'none';
+                }
+            }
+            
+            // Mettre à jour le message de résultat
+            const searchResult = document.querySelector('.search-result');
+            if (searchResult) {
+                if (searchInput) {
+                    searchResult.textContent = `${visibleCount} résultat(s) trouvé(s) pour "${searchInput}"`;
+                    searchResult.style.display = 'block';
+                } else {
+                    searchResult.style.display = 'none';
+                }
+            }
+        }
+        
         // Fermer le menu si on clique ailleurs
         window.addEventListener('click', function(e) {
             const filterMenu = document.getElementById('filterMenu');
@@ -235,6 +279,14 @@
                 !filterMenu.contains(e.target) && 
                 !filterBtn.contains(e.target)) {
                 filterMenu.classList.remove('active');
+            }
+        });
+        
+        // Initialiser la recherche au chargement de la page
+        window.addEventListener('DOMContentLoaded', function() {
+            // Si le champ de recherche contient déjà une valeur, filtrer les résultats
+            if (document.getElementById('search').value) {
+                searchInRealTime();
             }
         });
     </script>

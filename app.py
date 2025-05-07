@@ -43,9 +43,8 @@ def index():
         bms_name = doc.id
         bms_info = doc.to_dict()
         
-        # Filtrer par nom si une recherche est effectuée
-        if search_term and search_term not in bms_name.lower():
-            continue
+        # Pas de filtrage côté serveur pour permettre la recherche en temps réel côté client
+        # La recherche se fait maintenant côté client en JavaScript
             
         # Extraire la date la plus récente depuis le contenu du BMS
         latest_timestamp = None
