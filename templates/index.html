@@ -91,6 +91,7 @@
             border-radius: 5px;
             border: 1px solid #ddd;
             box-sizing: border-box;
+            height: 42px; /* Hauteur fixe pour aligner avec le bouton de filtre */
         }
         .search-icon {
             position: absolute;
@@ -102,7 +103,7 @@
         .filter-dropdown {
             position: relative;
             width: auto;
-            min-width: 140px;
+            min-width: 110px;
         }
         .filter-btn {
             display: flex;
@@ -116,6 +117,8 @@
             background-color: white;
             cursor: pointer;
             white-space: nowrap;
+            height: 42px; /* Hauteur fixe pour correspondre à l'input */
+            box-sizing: border-box;
         }
         .filter-menu {
             display: none;
@@ -184,7 +187,7 @@
                 <!-- Menu déroulant filtre avec icône -->
                 <div class="filter-dropdown">
                     <button type="button" class="filter-btn" onclick="toggleFilterMenu(event)">
-                        <span>Trier: <span class="current-filter">{{ 'Nom' if sort_by == 'name' else 'Récent' }}</span></span>
+                        <span>Filtres</span>
                         <i class="fas fa-filter"></i>
                     </button>
                     <div class="filter-menu" id="filterMenu">
