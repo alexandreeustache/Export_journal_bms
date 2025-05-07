@@ -31,7 +31,7 @@ def index():
         return redirect(url_for("login"))
 
     # Récupérer les paramètres de filtrage
-    sort_by = request.args.get("sort_by", "name")  # Default: tri par nom
+    sort_by = request.args.get("sort_by", "name_asc")  # Default: tri par nom croissant
     search_term = request.args.get("search", "").lower()
     
     # Récupérer tous les documents BMS
@@ -69,12 +69,18 @@ def index():
         })
     
     # Trier les BMS selon le critère sélectionné
-    if sort_by == "recent":
+    if sort_by == "name_asc":
+        # Tri par nom croissant (A-Z)
+        bms_data.sort(key=lambda x: x["name"])
+    elif sort_by == "name_desc":
+        # Tri par nom décroissant (Z-A)
+        bms_data.sort(key=lambda x: x["name"], reverse=True)
+    elif sort_by == "recent":
         # Trier par date la plus récente d'abord, puis par nom pour les BMS sans date
         bms_data.sort(key=lambda x: (x["last_connection"] is None, 
                                     "" if x["last_connection"] is None else -x["last_connection"].timestamp(), 
                                     x["name"]))
-    else:  # sort_by == "name"
+    else:  # Par défaut, tri par nom croissant
         bms_data.sort(key=lambda x: x["name"])
     
     # Formater les dates pour l'affichage
