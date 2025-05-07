@@ -15,12 +15,12 @@ db = firestore.client()
 
 def extraire_date_bms(bms_info):
     """
-    Extrait la date la plus récente parmi les clés du dictionnaire (format: '30-04-2025_12:13').
+    Extrait la date la plus récente parmi les clés du dictionnaire (format: 'yyyy-mm-dd_h:m').
     """
     latest_date = None
     for key in bms_info.keys():
         try:
-            date_obj = datetime.strptime(key, "%d-%m-%Y_%H:%M")
+            date_obj = datetime.strptime(key, "%Y-%m-%d_%H:%M")
             if not latest_date or date_obj > latest_date:
                 latest_date = date_obj
         except ValueError:
