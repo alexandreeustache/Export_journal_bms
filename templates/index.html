@@ -61,9 +61,6 @@
             width: 100%;
             transition: background-color 0.3s;
         }
-        button:hover {
-            background-color: rgb(169, 13, 13);
-        }
         .form-container {
             text-align: center;
         }
@@ -129,6 +126,7 @@
             white-space: nowrap;
             box-sizing: border-box;
             margin: 0; /* Supprime les marges qui pourraient causer des problèmes */
+            color: #333; /* Assure une couleur de texte visible */
         }
         .filter-menu {
             display: none;
@@ -148,6 +146,7 @@
         .filter-option {
             padding: 10px;
             cursor: pointer;
+            font-size: 13px;
         }
         .filter-option:hover {
             background-color: #f4f4f4;
@@ -204,7 +203,7 @@
                 <!-- Menu déroulant filtre avec icône -->
                 <div class="filter-dropdown">
                     <button type="button" class="filter-btn" onclick="toggleFilterMenu(event)">
-                        <span>Filtres</span>
+                        <span style="color: #333; font-weight: 500;">Filtres</span>
                         <i class="fas fa-filter"></i>
                     </button>
                     <div class="filter-menu" id="filterMenu">
@@ -323,12 +322,20 @@
             
             if (sortBy === 'name_asc') {
                 filterBtnText.innerHTML = 'Nom (A-Z)';
+                filterBtnText.style.color = '#333';
+                filterBtnText.style.fontWeight = '500';
             } else if (sortBy === 'name_desc') {
                 filterBtnText.innerHTML = 'Nom (Z-A)';
+                filterBtnText.style.color = '#333';
+                filterBtnText.style.fontWeight = '500';
             } else if (sortBy === 'recent') {
                 filterBtnText.innerHTML = 'Plus récent';
+                filterBtnText.style.color = '#333';
+                filterBtnText.style.fontWeight = '500';
             } else {
                 filterBtnText.innerHTML = 'Filtres';
+                filterBtnText.style.color = '#333';
+                filterBtnText.style.fontWeight = '500';
             }
         });
     </script>
