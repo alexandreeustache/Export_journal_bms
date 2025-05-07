@@ -20,7 +20,7 @@ def extraire_date_bms(content):
         return datetime.strptime(date_str, "%Y/%m/%d")
     except Exception:
         return None
-    
+
 
 def get_bms_data(sort_by=None, search_term=None):
     bms_docs = db.collection('bms').stream()
@@ -73,13 +73,47 @@ def index():
     sort_by = request.args.get("sort_by", "name_asc")
     search_term = request.args.get("search", "").lower()
 
-    bms_data = get_bms_data(sort_by=sort_by, search_term=search_term)
+    docs = db.collection("Journal-bms").stream()
 
-    return render_template("index.html", 
-                           bms_data=bms_data, 
+    bms_data = []
+    for doc in docs:
+        bms_name = doc.id
+        bms_info = doc.to_dict()
+
+        # Filtrage côté serveur (optionnel)
+        if search_term and search_term not in bms_name.lower():
+            continue
+
+        latest_timestamp = extraire_date_bms(bms_info) if bms_info else None
+
+        bms_data.append({
+            "name": bms_name,
+            "last_connection": latest_timestamp
+        })
+
+    # Tri
+    if sort_by == "name_asc":
+        bms_data.sort(key=lambda x: x["name"])
+    elif sort_by == "name_desc":
+        bms_data.sort(key=lambda x: x["name"], reverse=True)
+    elif sort_by == "recent":
+        bms_data.sort(key=lambda x: (x["last_connection"] is None,
+                                     datetime.min if x["last_connection"] is None else -x["last_connection"].timestamp(),
+                                     x["name"]))
+    else:
+        bms_data.sort(key=lambda x: x["name"])
+
+    # Format d'affichage
+    for bms in bms_data:
+        if bms["last_connection"]:
+            bms["last_connection_str"] = bms["last_connection"].strftime("%d-%m-%Y %H:%M")
+        else:
+            bms["last_connection_str"] = "Inconnue"
+
+    return render_template("index.html",
+                           bms_data=bms_data,
                            sort_by=sort_by,
                            search_term=search_term)
-
 
 @app.route("/export", methods=["POST"])
 def export():
