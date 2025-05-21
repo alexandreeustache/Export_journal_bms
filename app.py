@@ -76,7 +76,7 @@ def index():
     else:
         bms_data.sort(key=lambda x: x["name"])
 
-    # Format lisible
+    # Format lisible pour l'affichage dans l'interface
     for bms in bms_data:
         if bms["last_connection"]:
             bms["last_connection_str"] = bms["last_connection"].strftime("%d-%m-%Y %H:%M")
@@ -101,15 +101,15 @@ def export():
 
     data = doc.to_dict()
     
-    # Date la plus récente des données du BMS
+    # Récupérer la date la plus récente des données du BMS
     latest_date = extraire_date_bms(data)
     
-    # Date la plus récente pour le nom du csv, sinon date actuelle
+    # Utiliser la date la plus récente pour le nom de fichier si disponible, sinon utiliser la date actuelle
     if latest_date:
-        timestamp = latest_date.strftime("%d-%m-%Y_%H-%M")
+        timestamp = latest_date.strftime("%Y-%m-%d_%H-%M")
     else:
         now = datetime.now()
-        timestamp = now.strftime("%d-%m-%Y_%H-%M")
+        timestamp = now.strftime("%Y-%m-%d_%H-%M")
 
     filename = f"{bms_name}_{timestamp}.csv"
     filepath = os.path.join("exports", filename)
