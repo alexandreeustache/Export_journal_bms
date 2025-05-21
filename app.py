@@ -101,8 +101,16 @@ def export():
 
     data = doc.to_dict()
     
-    now = datetime.now()
-    timestamp = now.strftime("%d-%m-%Y_%H-%M")
+    # Date la plus récente des données du BMS
+    latest_date = extraire_date_bms(data)
+    
+    # Date la plus récente pour le nom du csv, sinon date actuelle
+    if latest_date:
+        timestamp = latest_date.strftime("%d-%m-%Y_%H-%M")
+    else:
+        now = datetime.now()
+        timestamp = now.strftime("%d-%m-%Y_%H-%M")
+
     filename = f"{bms_name}_{timestamp}.csv"
     filepath = os.path.join("exports", filename)
 
