@@ -4,6 +4,7 @@ from firebase_admin import credentials, firestore
 import csv
 import os
 from datetime import datetime
+import pytz
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev_key")
@@ -108,7 +109,9 @@ def export():
     if latest_date:
         timestamp = latest_date.strftime("%Y-%m-%d_%H-%M")
     else:
-        now = datetime.now()
+        # Utiliser le fuseau horaire Europe/Paris pour avoir l'heure française correcte
+        timezone = pytz.timezone('Europe/Paris')
+        now = datetime.now(timezone)
         timestamp = now.strftime("%Y-%m-%d_%H-%M")
 
     filename = f"{bms_name}_{timestamp}.csv"
